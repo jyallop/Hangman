@@ -1,4 +1,4 @@
 module Game.Game (game) where
 
 game :: String -> String
-game str = "Hello"
+game str = "Hello, " ++ str ++ "!"

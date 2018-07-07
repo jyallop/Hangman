@@ -8,7 +8,7 @@ import Game.Game
 main :: IO ()
 main = hspec spec
 
-spec :: s
+spec :: Spec
 spec = do
     describe "game" $ do 
         it "takes a string and returns Hello ++ string" $ do
