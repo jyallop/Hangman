@@ -27,4 +27,14 @@ is_complete (InProgress _ _ guesses chars)
     | otherwise = False
 
 make_guess :: Game -> Char -> Game
-make_guess game char = game
+make_guess (InProgress word guessed guesses chars) char =
+    case Data.Map.lookup char chars of
+        Just val -> (
+            let updated_game = InProgress word guessed guesses (adjust (+ 1) char chars)
+            in
+            case (is_complete updated_game) of
+                True -> Won word guesses
+                False -> updated_game)
+        Nothing -> (case guesses == 5 of
+            True -> Lost word
+            False -> InProgress word (char : guessed) (guesses + 1) chars)
