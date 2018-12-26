@@ -1,6 +1,7 @@
 module Game.Game where
 
 import Data.Map
+import Text.Printf
 
 type FinalWord = String
 type Guesses = Int
@@ -28,13 +29,34 @@ is_complete (InProgress _ _ guesses chars)
 
 make_guess :: Game -> Char -> Game
 make_guess (InProgress word guessed guesses chars) char =
-    case Data.Map.lookup char chars of
-        Just val -> (
-            let updated_game = InProgress word guessed guesses (adjust (+ 1) char chars)
-            in
-            case (is_complete updated_game) of
-                True -> Won word guesses
-                False -> updated_game)
-        Nothing -> (case guesses == 5 of
-            True -> Lost word
-            False -> InProgress word (char : guessed) (guesses + 1) chars)
+    if char `elem` guessed then
+        InProgress word guessed guesses chars
+    else
+        case Data.Map.lookup char chars of
+            Just val -> (
+                let updated_game = InProgress word (char : guessed) guesses (adjust (+ 1) char chars)
+                in
+                case (is_complete updated_game) of
+                    True -> Won word guesses
+                    False -> updated_game)
+            Nothing -> (case guesses == 5 of
+                True -> Lost word
+                False -> InProgress word (char : guessed) (guesses + 1) chars)
+
+
+print_game :: Game -> IO ()
+print_game (Lost word) = printf "You lost, the word was %s\n" word
+print_game (Won word guesses) = printf "You won, the word was %s, and you had %d guesses remaining\n" word (6 - guesses)
+print_game (InProgress word guessed guesses characters) =
+    let current = Prelude.map (char_conversion characters) word in
+    let g = Prelude.foldl (\y x-> concat [y, (x:" ")]) "" guessed
+    in
+    printf "%-20s -- Guesses remaining: %d -- Characters guessed: %s\n" current (6 - guesses) g
+
+char_conversion :: Characters -> Char -> Char
+char_conversion chars x =
+    case Data.Map.lookup x chars of
+        Just val -> if val == 1 then x else '-'
+        Nothing -> '-'
+
+    
