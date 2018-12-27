@@ -4,15 +4,18 @@ import Data.String.Strip
 import Game.Game
 import Paths_hangman
 import System.IO
+import System.Random
 
 main :: IO ()
 main = do
   fileName <- getDataFileName "words.txt"
   file <- openFile fileName ReadMode
-  lines <- hGetContents file
-  --TODO return random word from file
-  let line = getNthWord 4 lines 
-  let game = new_game line
+  contents <- hGetContents file
+  gen <- getStdGen
+  let words = lines contents
+  let (index, _) = randomR (0, length words) gen 
+  let word = getNthWord index words 
+  let game = new_game word
   done <- playGame game getLine
   print_game done
   hClose file
@@ -29,5 +32,5 @@ playGame game action = do
     playGame newGame action
 
 
-getNthWord :: Int -> String -> String
-getNthWord x = last . take x . lines
+getNthWord :: Int -> [String] -> String
+getNthWord x = last . take x

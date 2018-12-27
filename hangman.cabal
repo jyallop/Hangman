@@ -29,6 +29,7 @@ executable hangman
   build-depends:       base
                      , hangman
                      , containers
+                     , random
   default-language:    Haskell2010
 
 test-suite hangman-test
