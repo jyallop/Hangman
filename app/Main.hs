@@ -15,18 +15,18 @@ main = do
   let words = lines contents
   let (index, _) = randomR (0, length words) gen 
   let word = getNthWord index words 
-  let game = new_game word
+  let game = newGame word
   done <- playGame game getLine
-  print_game done
+  printGame done
   hClose file
 
 playGame :: Game -> IO String -> IO Game
 playGame game action = do
-  print_game game
+  printGame game
   putStrLn "Make a guess: "
   input <- action
-  let newGame = make_guess game (head input)
-  if is_complete newGame then
+  let newGame = makeGuess game (head input)
+  if isComplete newGame then
     return newGame
   else
     playGame newGame action

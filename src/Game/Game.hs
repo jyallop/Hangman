@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Game.Game where
 
 import Data.Map
@@ -13,50 +14,48 @@ data Game = Won FinalWord Guesses
     | InProgress FinalWord Guessed Guesses Characters
     deriving (Show, Eq)
     
-new_game :: String -> Game
-new_game str =
-    let chars = fromList $ Prelude.map (\x -> (x, 0)) str
+newGame :: String -> Game
+newGame str =
+    let chars = fromList $ Prelude.map (,0) str
     in 
     InProgress str "" 0 chars
 
-is_complete :: Game -> Bool
-is_complete (Lost _) = True
-is_complete (Won _ _) = True
-is_complete (InProgress _ _ guesses chars) 
+isComplete :: Game -> Bool
+isComplete (Lost _) = True
+isComplete (Won _ _) = True
+isComplete (InProgress _ _ guesses chars) 
     | guesses >= 6 = True
-    | Data.Map.foldl (+) 0 chars == (Data.Map.size chars) = True
+    | Data.Map.foldl (+) 0 chars == Data.Map.size chars = True
     | otherwise = False
 
-make_guess :: Game -> Char -> Game
-make_guess (InProgress word guessed guesses chars) char =
+makeGuess :: Game -> Char -> Game
+makeGuess (InProgress word guessed guesses chars) char =
     if char `elem` guessed then
         InProgress word guessed guesses chars
     else
         case Data.Map.lookup char chars of
-            Just val -> (
-                let updated_game = InProgress word (char : guessed) guesses (adjust (+ 1) char chars)
+            Just val -> 
+                let updatedGame = InProgress word (char : guessed) guesses (adjust (+ 1) char chars)
                 in
-                case (is_complete updated_game) of
-                    True -> Won word guesses
-                    False -> updated_game)
-            Nothing -> (case guesses == 5 of
-                True -> Lost word
-                False -> InProgress word (char : guessed) (guesses + 1) chars)
+                if isComplete updatedGame 
+                    then Won word guesses
+                    else updatedGame
+            Nothing -> if guesses == 5 
+                then Lost word
+                else InProgress word (char : guessed) (guesses + 1) chars
 
 
-print_game :: Game -> IO ()
-print_game (Lost word) = printf "You lost, the word was %s\n" word
-print_game (Won word guesses) = printf "You won, the word was %s, and you had %d guesses remaining\n" word (6 - guesses)
-print_game (InProgress word guessed guesses characters) =
-    let current = Prelude.map (char_conversion characters) word in
-    let g = Prelude.foldl (\y x-> concat [y, (x:" ")]) "" guessed
+printGame :: Game -> IO ()
+printGame (Lost word) = printf "You lost, the word was %s\n" word
+printGame (Won word guesses) = printf "You won, the word was %s, and you had %d guesses remaining\n" word (6 - guesses)
+printGame (InProgress word guessed guesses characters) =
+    let current = Prelude.map (charConversion characters) word in
+    let g = Prelude.foldl (\y x-> y ++ (x : " ")) "" guessed
     in
     printf "%-20s -- Guesses remaining: %d -- Characters guessed: %s\n" current (6 - guesses) g
 
-char_conversion :: Characters -> Char -> Char
-char_conversion chars x =
+charConversion :: Characters -> Char -> Char
+charConversion chars x =
     case Data.Map.lookup x chars of
         Just val -> if val == 1 then x else '-'
         Nothing -> '-'
-
-    
